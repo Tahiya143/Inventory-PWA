@@ -1,21 +1,248 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inventory Web App</title>
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventory PWA — Umme’s Fashion</title>
+  <meta name="theme-color" content="#0ea5e9"/>
+  <link rel="manifest" href="manifest.json?v=1.2.3">
+  <link rel="stylesheet" href="assets/css/styles.css?v=1.2.3">
 </head>
 <body>
-  <h1>📦 Inventory App</h1>
-  <p>Starter project skeleton</p>
+  <header class="app-header">
+    <h1 id="brandTitle">Umme’s Fashion</h1>
+    <div class="header-actions">
+      <button id="installBtn" class="btn primary small" title="Install">Install App</button>
+      <button id="forceUpdateBtn" class="btn small" title="Force update">Force Update</button>
+      <span id="installState" class="install-state" aria-live="polite"></span>
+    </div>
+  </header>
 
-  <script src="assets/lib/dexie.min.js"></script>
-  <script src="assets/lib/html5-qrcode.min.js"></script>
-  <script src="assets/lib/JsBarcode.all.min.js"></script>
-  <script src="assets/lib/qrcode.min.js"></script>
-  <script src="assets/js/db.js"></script>
-  <script src="assets/js/app.js"></script>
-  
+  <nav class="tabs" role="tablist" aria-label="Main">
+    <button class="tab active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
+    <button class="tab" data-tab="inventory" role="tab">Inventory</button>
+    <button class="tab" data-tab="add" role="tab">Add</button>
+    <button class="tab" data-tab="scan" role="tab">Scan & Sell</button>
+    <button class="tab" data-tab="reports" role="tab">Reports</button>
+    <button class="tab" data-tab="expenses" role="tab">Expenses</button>
+    <button class="tab" data-tab="settings" role="tab">Settings</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="panel-dashboard" class="panel active" role="tabpanel">
+      <div class="kpis" id="dashboardKpis"></div>
+      <div class="home-actions">
+        <button class="btn" data-nav="add">Add Product</button>
+        <button class="btn" data-nav="scan">Scan & Sell</button>
+        <button class="btn" data-nav="inventory">Inventory</button>
+        <button class="btn" data-nav="reports">Reports</button>
+      </div>
+    </section>
+
+    <!-- INVENTORY -->
+    <section id="panel-inventory" class="panel" role="tabpanel">
+      <div class="toolbar">
+        <div class="search-row">
+          <input id="invSearch" class="input" type="search" placeholder="Search by code or title" autocomplete="off">
+          <button id="invScanBtn" class="btn icon" title="Scan code"><span class="cam-ico" aria-hidden="true"></span></button>
+        </div>
+        <select id="invStatus" class="input">
+          <option value="available">Available</option>
+          <option value="sold">Sold</option>
+          <option value="all" selected>All</option>
+        </select>
+        <select id="invCategory" class="input">
+          <option value="">All Categories</option>
+        </select>
+        <input id="invTag" class="input" placeholder="Tag filter (one)" autocomplete="off">
+        <button id="selectAllBtn" class="btn small">Select All</button><button id="bulkPrintBtn" class="btn">Bulk Print</button>
+      </div>
+      <div id="inventoryList" class="cards"></div></section>
+
+    <!-- ADD -->
+    <section id="panel-add" class="panel" role="tabpanel">
+      <form id="addForm" class="form" autocomplete="off">
+        <div class="grid">
+          <label>Code
+            <input id="code" name="code" class="input" readonly>
+          </label>
+          <label>Title
+            <input id="title" name="title" class="input" required>
+          </label>
+          <label>Category
+            <input id="category" name="category" class="input">
+          </label>
+          <label>Size
+            <input id="size" name="size" class="input">
+          </label>
+          <label>Color
+            <input id="color" name="color" class="input">
+          </label>
+          <label>Purchase Price
+            <input id="purchasePrice" name="purchasePrice" class="input" inputmode="decimal" step="0.01" min="0">
+          </label>
+          <label>Shipping Cost
+            <input id="shippingCost" name="shippingCost" class="input" inputmode="decimal" step="0.01" min="0">
+          </label>
+          <label>List Price (optional)
+            <input id="listPrice" name="listPrice" class="input" inputmode="decimal" step="0.01" min="0">
+          </label>
+          <label>Tags (comma separated)
+            <input id="tags" name="tags" class="input">
+          </label>
+          <label>Notes
+            <textarea id="notes" name="notes" class="input" rows="3"></textarea>
+          </label>
+          <label>Photo (optional)
+            <input id="photo" type="file" accept="image/*" capture="environment">
+          </label>
+          <label>Upload from CSV
+            <input id="addImportCsv" type="file" accept=".csv,text/csv">
+          </label>
+        </div>
+        <div class="preview-row">
+          <div>
+            <strong>Label Preview</strong>
+            <canvas id="labelPreview" width="180" height="180" class="label-canvas" aria-label="Code preview"></canvas>
+            <div class="muted small">QR/barcode image generation hooks are present.</div>
+          </div>
+        </div>
+        <div class="actions sticky">
+          <button type="submit" class="btn primary">Save</button>
+          <button type="button" id="resetAddForm" class="btn">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- SCAN & SELL -->
+    <section id="panel-scan" class="panel" role="tabpanel">
+      <div class="scanner-toolbar">
+        <label>Scan type
+          <select id="scanType" class="input">
+            <option value="qr">QR (default)</option>
+            <option value="barcode">1D Barcode</option>
+          </select>
+        </label>
+        <button id="cameraSwitchBtn" class="btn small">Switch Camera</button>
+        <button id="torchBtn" class="btn small">Torch</button>
+        <button id="uploadScanBtn" class="btn small">Upload image</button>
+      </div>
+      <video id="scanVideo" playsinline muted class="scan-video"></video>
+      <canvas id="scanCanvas" class="hide"></canvas>
+      <div id="scanStatus" class="muted"></div>
+
+      <div id="scanResult" class="scan-result"></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="panel-reports" class="panel" role="tabpanel">
+      <div class="toolbar">
+        <select id="reportMode" class="input">
+          <option value="sales" selected>Sales</option>
+          <option value="expenses">Expenses</option>
+          <option value="pnl">Profit & Loss</option>
+          <option value="category">By Category</option>
+        </select>
+        <select id="reportRange" class="input">
+          <option value="today">Today</option>
+          <option value="yesterday">Yesterday</option>
+          <option value="last7">Last 7 Days</option>
+          <option value="thisMonth" selected>This Month</option>
+          <option value="lastMonth">Last Month</option>
+          <option value="custom">Custom Range</option>
+        </select>
+        <input id="customStart" type="date" class="input hide">
+        <input id="customEnd" type="date" class="input hide">
+        <button id="exportReportCsv" class="btn">Export CSV</button>
+        <button id="printReportBtn" class="btn">Print</button>
+      </div>
+      <div class="kpis" id="reportKpis"></div>
+      <div class="charts">
+        <canvas id="salesChart" width="600" height="280" aria-label="Primary chart"></canvas>
+        <canvas id="profitChart" width="600" height="280" aria-label="Secondary chart"></canvas>
+      </div>
+      <div id="reportTable"></div>
+    </section>
+
+    <!-- EXPENSES -->
+    <section id="panel-expenses" class="panel" role="tabpanel">
+      <form id="expenseForm" class="form" autocomplete="off">
+        <div class="grid">
+          <label>Title
+            <input id="expTitle" class="input" required>
+          </label>
+          <label>Amount
+            <input id="expAmount" class="input" inputmode="decimal" step="0.01" min="0" required>
+          </label>
+          <label>Category
+            <input id="expCategory" class="input" placeholder="e.g., Inventory, Shipping, Rent">
+          </label>
+          <label>Note
+            <input id="expNote" class="input">
+          </label>
+        </div>
+        <div class="actions sticky">
+          <button type="submit" class="btn primary">Add Expense</button>
+        </div>
+      </form>
+      <div class="toolbar">
+        <button id="printExpensesBtn" class="btn">Print</button>
+        <button id="exportExpensesCsvBtn" class="btn">Export CSV</button>
+      </div>
+      <div id="expenseList" class="cards"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="panel-settings" class="panel" role="tabpanel">
+      <div class="grid">
+        <label>Brand Title
+          <input id="brandInput" class="input" value="Umme’s Fashion">
+        </label>
+        <label>Currency Symbol
+          <input id="currencyInput" class="input" value="$" maxlength="3">
+        </label>
+        <label>Label Code Type
+          <select id="labelCodeType" class="input">
+            <option value="qr" selected>QR</option>
+            <option value="barcode">Barcode (Code128)</option>
+          </select>
+        </label>
+        <label>Note (tax/shipping handling)
+          <input id="noteInput" class="input" placeholder="Shown on labels if desired">
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <h3>Backup / Restore</h3>
+        <div class="row">
+          <button id="exportJsonBtn" class="btn">Export JSON</button>
+          <button id="exportCsvBtn" class="btn">Export CSV</button>
+        </div>
+        <div class="row">
+          <label class="btn">Import JSON <input id="importJson" type="file" accept=".json" hidden></label>
+          <label class="btn">Import CSV <input id="importCsv" type="file" accept=".csv,text/csv" hidden></label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Utilities</h3>
+        <button id="seedBtn" class="btn">Load Sample Data</button>
+        <button id="runTestsBtn" class="btn">Run Smoke Tests</button>
+        <button id="clearDbBtn" class="btn danger">Clear / Reset Database</button>
+        <div id="versionInfo" class="muted small"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>window.APP_VERSION="1.2.3";</script>
+  <script src="assets/js/db.js?v=1.2.3"></script>
+  <script src="assets/js/app.js?v=1.2.3"></script>
+  <script src="assets/js/scanner.js?v=1.2.3"></script>
+  <script src="assets/js/labels.js?v=1.2.3"></script>
+  <script src="assets/js/reports.js?v=1.2.3"></script>
+  <script src="assets/js/tests.js?v=1.2.3"></script>
 </body>
 </html>

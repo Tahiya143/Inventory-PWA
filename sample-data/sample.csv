@@ -1,3 +1,19 @@
-SKU,Title,PurchasePrice,SellingPrice,Profit,Status
-12345,Red Shirt,10,15,5,Available
-67890,Blue Jeans,20,35,15,Sold
+# PRODUCTS
+code,title,category,size,color,purchasePrice,shippingCost,listPrice,notes,tags,createdAt,updatedAt
+"SKU-0001","Floral Kurti","Kurti","M","Blue","18","2.5","29.99","Cotton floral","summer|kurti","2025-07-01T12:00:00Z","2025-07-01T12:00:00Z"
+"SKU-0002","Silk Lehenga","Lehenga","S","Red","65","6.5","109.00","Light silk","wedding|lehenga","2025-07-02T12:00:00Z","2025-07-02T12:00:00Z"
+"SKU-0003","Anarkali Dress","Gown","L","Green","42","4.5","79.00","Long flow","party|dress","2025-07-03T12:00:00Z","2025-07-03T12:00:00Z"
+"SKU-0004","Cotton Salwar","Salwar","M","White","20","3.0","36.50","Breathable","salwar|cotton","2025-07-04T12:00:00Z","2025-07-04T12:00:00Z"
+"SKU-0005","Chiffon Saree","Saree","One","Pink","25","3.5","49.00","Soft drape","saree|chiffon","2025-07-05T12:00:00Z","2025-07-05T12:00:00Z"
+"SKU-0006","Kids Frock","Kids","3-4Y","Yellow","12","1.8","22.00","Cute","kids|frock","2025-07-06T12:00:00Z","2025-07-06T12:00:00Z"
+"SKU-0007","Men's Panjabi","Panjabi","L","Black","22","3.0","39.00","Slim fit","men|panjabi","2025-07-07T12:00:00Z","2025-07-07T12:00:00Z"
+"SKU-0008","Georgette Gown","Gown","M","Maroon","48","5.2","89.00","Heavy work","gown|georgette","2025-07-08T12:00:00Z","2025-07-08T12:00:00Z"
+"SKU-0009","Casual Top","Top","S","Purple","10","1.5","19.99","Daily wear","top|casual","2025-07-09T12:00:00Z","2025-07-09T12:00:00Z"
+"SKU-0010","Linen Kurta","Kurta","XL","Beige","28","3.7","44.00","Linen blend","men|kurta","2025-07-10T12:00:00Z","2025-07-10T12:00:00Z"
+
+# SALES
+code,sellingPrice,profit,soldAt
+
+# EXPENSES
+title,amount,category,note,createdAt
+"Shipping Labels","35.50","Shipping","Stamps","2025-07-11T12:00:00Z"
