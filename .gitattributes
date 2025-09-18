@@ -1,0 +1,20 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.md  text
+*.html text
+*.css text
+*.js  text
+*.json text
+*.csv text
+*.yml text
+*.yaml text
+*.svg text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+
+# Treat vendored libs as such on GitHub
+assets/lib/* linguist-vendored

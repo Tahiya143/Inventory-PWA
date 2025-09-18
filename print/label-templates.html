@@ -1,10 +1,78 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Label Templates</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Print Labels</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <style>
+    body { background:#fff; color:#000; }
+    .controls { display:flex; gap:10px; flex-wrap:wrap; padding:10px; position: sticky; top:0; background:#fff; }
+    .sheet { width: 8.5in; margin: 0 auto; padding: 0; display: grid; grid-template-columns: repeat(3, 2.625in); gap: 0.125in 0.188in; }
+    .cell { width: 2.625in; height: 1in; padding: 4px; border: 1px dashed #ddd; overflow: hidden; }
+    .brand { font-weight:700; font-size: 10pt; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9pt; }
+    .sc { font-size: 8pt; color:#333; }
+    .img { width: 0.8in; height: 0.8in; background: #0001; display:inline-block; }
+    @media print { .controls { display:none; } .cell { border: none; } @page { margin: 0; size: letter; } }
+  </style>
 </head>
 <body>
-  <h2>Label Templates</h2>
-  <p>This page will hold A4/Letter label templates.</p>
+  <div class="controls">
+    <button onclick="window.print()" class="btn">Print</button>
+    <button id="loadSelection" class="btn">Load Selection</button>
+    <label>Paper
+      <select id="paperSel" class="input">
+        <option value="letter" selected>Letter 3×10 (Avery 5160)</option>
+        <option value="a4">A4 3×8</option>
+      </select>
+    </label>
+    <label>Code Image
+      <select id="imgType" class="input">
+        <option value="qr">QR</option>
+        <option value="barcode">Barcode (Code128)</option>
+        <option value="none" selected>Text only</option>
+      </select>
+    </label>
+  </div>
+  <div id="sheet" class="sheet"></div>
+
+  <script>
+    const sheet = document.getElementById('sheet');
+    const imgTypeSel = document.getElementById('imgType');
+    document.getElementById('paperSel').onchange = (e) => {
+      const val = e.target.value;
+      if (val==='a4') { sheet.style.width='210mm'; sheet.style.gridTemplateColumns='repeat(3, 70mm)'; }
+      else { sheet.style.width='8.5in'; sheet.style.gridTemplateColumns='repeat(3, 2.625in)'; }
+    };
+    function cellHtml(p) {
+      const s = JSON.parse(localStorage.getItem('settings')||'{}'); const brand = s.brand || "Umme’s Fashion";
+      const sc = (p.size||'') + (p.color ? (' / '+p.color):'');
+      return '<div class="cell"><div class="brand">'+brand+'</div>'+
+        '<div class="code">'+p.code+'</div>'+ (sc ? '<div class="sc">'+sc+'</div>':'')+
+        '<div class="img"></div></div>';
+    }
+    async function loadCodes(codes) {
+      sheet.innerHTML = '';
+      for (const code of codes) {
+        const p = await DB.getProductByCode(code);
+        if (p) sheet.insertAdjacentHTML('beforeend', cellHtml(p));
+      }
+    }
+    document.getElementById('loadSelection').onclick = async () => {
+      const codes = JSON.parse(localStorage.getItem('bulkPrintCodes')||'[]');
+      if (!codes.length) { alert('No selection saved. Select items in Inventory first.'); return; }
+      await loadCodes(codes);
+    };
+    (async () => {
+      let codes = JSON.parse(localStorage.getItem('bulkPrintCodes')||'[]');
+      if (!codes.length) {
+        const all = await DB.listProducts({status:'all'});
+        codes = all.map(p=>p.code);
+      }
+      if (codes.length) await loadCodes(codes);
+    })();
+  </script>
+  <script src="../assets/js/db.js"></script>
 </body>
 </html>
