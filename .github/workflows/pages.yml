@@ -24,8 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Enables Pages for the repo and configures it for Actions
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
